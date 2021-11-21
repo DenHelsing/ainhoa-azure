@@ -1,0 +1,45 @@
+.list-item{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  border: 2px solid rgb(128, 142, 204);
+  border-radius: 20px;
+  padding: 5px 20px;
+  -webkit-border-radius: 20px;
+  -moz-border-radius: 20px;
+  -ms-border-radius: 20px;
+  -o-border-radius: 20px;
+}
+
+.list-item-labels{
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+}
+
+.list-item-label{
+  margin: 5px 0;
+}
+
+.myListButton{
+  display: inline-block;
+  height: auto;
+  width: auto;
+  border-radius: 7px;
+  border: 2px solid rgb(128, 142, 204);
+  margin: 3px 5px;
+  transition: 0.5s;
+  cursor:pointer;
+  -webkit-transition: 0.5s;
+  -moz-transition: 0.5s;
+  -ms-transition: 0.5s;
+  -o-transition: 0.5s;
+}
+
+.myListButton-delete:hover{
+  background-color: rgb(221, 90, 90);
+}
+.myListButton-edit:hover{
+  background-color: rgb(107, 138, 207);
+}
