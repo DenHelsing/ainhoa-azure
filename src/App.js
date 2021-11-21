@@ -4,6 +4,8 @@ import EmployeesList from './components/employees-list/employees-list';
 
 import firebase from './firebase';
 
+import { supabase } from './client';
+
 import {
   doc,
   setDoc,
@@ -33,14 +35,32 @@ export default class App extends Component {
   createEmployee = ({ fullName, hireDate, salary, isOutsource }) => {
     return { fullName, hireDate, salary, isOutsource, id: ++this.currentMaxId };
   };
-  createEmployeeForDatabase = ({ fullName, hireDate, salary, isOutsource }) => {
+  createEmployeeForDatabase = ({
+    id,
+    fullName,
+    hireDate,
+    salary,
+    isOutsource
+  }) => {
     return {
+      id,
       fullName,
       hireDate: Timestamp.fromMillis(new Date(hireDate).getTime()),
       salary,
       isOutsource
     };
   };
+
+  createItemForSupabase({ id, fullName, hireDate, salary, isOutsource }) {
+    // console.log(deadline);
+    return {
+      id,
+      fullName,
+      hireDate: new Date(hireDate).toISOString().replace('.000Z', ''),
+      salary,
+      isOutsource
+    };
+  }
 
   handleSubmit = (e) => {
     e.preventDefault();
@@ -143,6 +163,30 @@ export default class App extends Component {
     postData().then(() => console.log('saved'));
   };
 
+  saveToSupabase = () => {
+    const saveData = async () => {
+      const upsertData = this.state.employees.map((employee) =>
+        this.createItemForSupabase(employee)
+      );
+      console.log('upsertData ', upsertData);
+      const { data, error } = await supabase
+        .from('employees')
+        .upsert(upsertData);
+      console.log(error);
+      if (this.state.deletedIDs.length !== 0) {
+        console.log(this.state.deletedIDs);
+        console.log(`${this.state.deletedIDs.join(',')}`);
+        const { data2, error2 } = await supabase
+          .from('employees')
+          .delete()
+          .filter('id', 'in', `(${this.state.deletedIDs.join(',')})`);
+        // .match();
+        console.log(error2);
+      }
+    };
+    saveData().then(() => console.log('saved'));
+  };
+
   componentDidMount() {
     // this.setState({ loading: true });
     const fetchData = async () => {
@@ -160,9 +204,30 @@ export default class App extends Component {
         };
       });
       console.log(employees);
-      this.setState({ employees: employees });
     };
     fetchData();
+    const fetchEmployees = async () => {
+      const data = await supabase.from('employees').select();
+      console.log(data.data);
+      const employees = data.data.map((employee) => {
+        console.log(employee.id);
+        this.currentMaxId = Math.max(
+          this.currentMaxId,
+          parseInt(employee.id, 10)
+        );
+        const date = new Date(employee.hireDate);
+        return {
+          ...employee,
+          hireDate: `${date.getFullYear()}-${
+            date.getMonth() + 1
+          }-${date.getDate()}`
+        };
+      });
+      console.log(employees);
+      console.log(this.currentMaxId);
+      this.setState({ employees: employees });
+    };
+    fetchEmployees();
   }
 
   render() {
@@ -203,7 +268,7 @@ export default class App extends Component {
           </button>
           <button
             type="button"
-            onClick={this.saveToDatabase}
+            onClick={this.saveToSupabase}
             className="myButton saveToCloudButton"
           >
             {'Save to cloud'}
